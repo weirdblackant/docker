@@ -1,0 +1,65 @@
+docker : 
+docker is a containerisation software that uses virtualisation to create isolated environments(linux,windows etc.). 
+Applications can be run in docker containers with each container using host's resources as per the application needs
+
+Docker archicture:
+-------------------
+Docker has below components
+
+- docker client(with which we communicate with dockerd)
+
+- dockerd(docker daemon)
+- local image repo
+- containers repo
+
+- docker registry(dockerhub)
+
+docker client: 
+- whatever commands we execute in CLI starting with 'docker' is nothing but executing using 'docker client'
+
+
+dockerd:
+- the docker daemon listens for the  requests from docker client and manages docker objects
+
+local image repo:
+- This is a repo that collects all the images and stores locally
+to view all the local images
+	docker images
+
+container repo:
+- it stores all the containers locally 
+To view all the local containers
+	docker ps -a
+
+docker registry:
+- Dockerhub is a remote repo where images can stored. Docker Hub is a public registry that anyone can use, and Docker looks for images on Docker Hub by default. 
+
+
+-----------------------------------------
+docker storage:
+------------------
+- data written by the applications won't last beyond the container lifetime
+- Docker supports below storage types for persistence
+	volume mounts
+	bind mounts
+	tmpfs mounts
+	named pipes
+
+Volume mounts:
+- Volume mounts are persistent storage mechanisms managed by dockerd
+- these store data even after the container is deleted
+- Volume metadata is stored on the host but only the container can maintain the data on the volume
+- Since the data of volume is present on the host, it gives the same performance as if present on the host 
+- 
+- we can create a volume using 
+	docker volume create 
+bind mounts:
+------------
+- these create a direct link to the container filesystem and the host system path
+- if created, container can use the directories on the host and modify files
+
+tmpfs mounts:
+------------
+- is nothing but using the hosts' RAM to store some temp data
+- These mounts are suitable for scenarios requiring temporary, in-memory storage, such as caching intermediate data, handling sensitive information like credentials, or reducing disk I/O.
+
