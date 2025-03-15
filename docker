@@ -1,19 +1,20 @@
 docker : 
+---------
 docker is a containerisation software that uses virtualisation to create isolated environments(linux,windows etc.). 
-Applications can be run in docker containers with each container using host's resources as per the application needs
+Applications can be run in docker containers while each container using resources on basis of application needs
 
 Docker archicture:
 -------------------
 Docker has below components
 
-- docker client(with which we communicate with dockerd)
+- docker client(with which we communicate to dockerd)
 
 - dockerd(docker daemon)
 - local image repo
 - containers repo
 
 - docker registry(dockerhub)
-
+--------------------
 docker client: 
 - whatever commands we execute in CLI starting with 'docker' is nothing but executing using 'docker client'
 
@@ -45,14 +46,24 @@ docker storage:
 	tmpfs mounts
 	named pipes
 
-Volume mounts:
+Volumes/Volume mounts:
+------------------------
 - Volume mounts are persistent storage mechanisms managed by dockerd
-- these store data even after the container is deleted
-- Volume metadata is stored on the host but only the container can maintain the data on the volume
-- Since the data of volume is present on the host, it gives the same performance as if present on the host 
-- 
+- these store data even after the container is deleted/removed
+- when a volume are created, it is created somewhere as a directory on host. That directory will be mounted when you mount volume into container.
+- Since the data of volume is present on the host, it gives the same performance as it is present on the host 
+- There are again different types remote volumes to connect to docker
 - we can create a volume using 
-	docker volume create 
+
+	docker volume create <volumeName>
+
+NOTE:
+- If your container generates non-persistent state data, consider using a tmpfs mount to avoid storing the data anywhere permanently.
+- You can remove unused volumes using docker volume prune.
+
+
+
+--------------------------
 bind mounts:
 ------------
 - these create a direct link to the container filesystem and the host system path
