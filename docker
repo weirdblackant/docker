@@ -49,10 +49,19 @@ docker storage:
 Volumes/Volume mounts:
 ------------------------
 - Volume mounts are persistent storage mechanisms managed by dockerd
-- these store data even after the container is deleted/removed
-- when a volume are created, it is created somewhere as a directory on host. That directory will be mounted when you mount volume into container.
-- Since the data of volume is present on the host, it gives the same performance as it is present on the host 
-- There are again different types remote volumes to connect to docker
+- these store data even after the container is deleted
+- Since the data of volume is present on the host, it gives the same performance as if present on the host 
+- volumes are stored on the host in /var/lib/docker/volumes
+- Volumes can be mounted to container using '-v' for
+	docker run -d --name a1 -v /var/run/docker.sock:/var/run/docker.sock alpine:latest
+
+ for '--volume' 
+	docker run -d --name a1 --volume
+
+or '--mount'
+
+	docker run -d --name k1 -v v
+
 - we can create a volume using 
 
 	docker volume create <volumeName>
@@ -71,6 +80,6 @@ bind mounts:
 
 tmpfs mounts:
 ------------
-- is nothing but using the hosts' RAM to store some temp data
+- is nothing but using the host's RAM to store some temp data
 - These mounts are suitable for scenarios requiring temporary, in-memory storage, such as caching intermediate data, handling sensitive information like credentials, or reducing disk I/O.
 
