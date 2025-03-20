@@ -1,7 +1,47 @@
-docker : 
+Virtual Machines:
+-------------------
+- Virtual machines uses the host system resources to create multiple environments(linux/windows/apple) with their own kernel.
+
+
+                -------------------------------------------------
+                |       app A           |       app B           |
+		-------------------------------------------------
+		|	bins/libs	|	bins/libs	|
+		-------------------------------------------------
+                |         guest OS      |         guest OS      |
+                --------------------------------------------------
+                |               Hypervisor                      |
+                -------------------------------------------------
+                |          Host Operating System                |
+                -------------------------------------------------
+                |               Infrastructure                  |
+                -------------------------------------------------
+
+
+docker:
 ---------
+
+		-------------------------------------------------
+		|	app A		|	app B		|
+		--------------------------------------------------
+		|	configuration	|	configuration	|
+		|		OS	|		OS	|
+		--------------------------------------------------
+		|		DOCKER ENGINE			|
+		-------------------------------------------------
+		|		Host Operating System		|
+		-------------------------------------------------
+		| 		SERVER		          	|
+		-------------------------------------------------
+
 docker is a containerisation software that uses virtualisation to create isolated environments(linux,windows etc.). 
-Applications can be run in docker containers while each container using resources on basis of application needs
+Applications can be run inside docker containers while each container using host resources on basis of application needs
+
+
+containers VS Virtual machines:
+-------------------------------
+- Container use host operating system kernel inorder to function whereas Virtual machines will have their own kernel which manages resources(RAM/Storage) dedicated to them
+
 
 Docker archicture:
 -------------------
@@ -37,6 +77,97 @@ docker registry:
 
 
 -----------------------------------------
+Docker objects:
+---------------
+Docker objects mainly consists of 
+- images
+- containers
+- networks
+- volumes
+
+etc.,
+
+
+Docker images:
+----------------
+- Docker images are used to customize a docker container. In other words, images are like blueprints to create docker containers
+- images are created using 'Dockerfiles'. These 'Dockerfiles' consist of instruction commands inorder to build docker images
+- docker images can also be directly downloaded from dockerhub, a registry maintained by 'Docker' itself
+- Dockerfile instructions are described following below
+
+Docker containers:
+------------------
+- Docker containers are the isolated os environments in which applications can be customized with required resources
+- Containers use host resources inorder to run applications
+
+Docker Networks:
+---------------
+- A container has no information about network it's attached to, or whether their peers are also Docker workloads or not
+- A docker container only sees a network interface with an IP address, a gateway, a routing table, DNS services, and other networking details.
+- A network is created based on it's driver. whichever driver is used to create a network is the network type.
+- If network driver is a 'none' network, it has no network interface. So, no network
+
+- There are three types of docker network in docker environments
+	- bridge network: The default network driver.
+	- host network	: Remove network isolation between the container and the Docker host.
+	- none network	: Completely isolate a container from the host and other containers.
+	- overlay	: Overlay networks connect multiple Docker daemons together.
+	- ipvlan	: IPvlan networks provide full control over both IPv4 and IPv6 addressing.
+	- macvlan	: Assign a MAC address to a container.
+
+bridge network:
+------------------
+- a container in this network can communicate with other containers on the same network and with outside work/internet
+
+host network:
+-------------
+- A container can be connected to multiple networks.
+
+ipvlan:
+-------
+- Network driver that allows containers to get IP addresses from the host’s network with not creating a virtual MAC address for each container.
+- Instead, it uses a single MAC address (from the parent interface) and assigns multiple IPs to it.
+
+--internal(modifier/flag):
+-----------------
+- For example, a frontend container may be connected to a bridge network with external access, and a '--internal' network to communicate with containers running backend services that do not need external network access.
+- No external internet access
+- Can only communicate with other containers in private_network
+- Not exposed to the host, even if ports were mapped (which isn't possible in an --internal network)
+
+
+			--internal=true				--internal=false
+			-----------------			-----------------
+bridge network		internet=No,other-container=True	internet=True, other-containers=True 
+overlay network		internet=No,Swarm=True        		internet=True, Swarm=True
+host network		no support				no support
+none network		no support				no support
+ipvlan			no support				no support
+macvlan			no support				no support
+
+
+Scenario			Can Talk to Other Containers?	Can Access Internet?	Accessible from Host?
+----------			-----------------------------	--------------------	---------------------
+Container with -p		True 				True			True(via mapped port)
+Container without -p		True				True			No (but can access other containers)
+Container on --internal network	True				False			False
+
+
+
+		 IPvlan vs. Other Network Types
+Feature					Bridge	Host			Macvlan	IPvlan
+Uses NAT?				True    False			False	False
+Gets IP from Host Subnet?		False   True(shares with host)	True 	True
+Separate MAC for Each Container?	False   False			True	False(uses parent MAC)
+
+Bridge network is best for 'Internal container communication'	
+Host network is best for 'High-performance apps'	
+Macvlan network is for 'When multiple MACs are allowed'
+IPvlan network is 'When only a single MAC is allowed'
+
+
+
+
 docker storage:
 ------------------
 - data written by the applications won't last beyond the container lifetime
@@ -82,4 +213,413 @@ tmpfs mounts:
 ------------
 - is nothing but using the host's RAM to store some temp data
 - These mounts are suitable for scenarios requiring temporary, in-memory storage, such as caching intermediate data, handling sensitive information like credentials, or reducing disk I/O.
+
+
+----------------------------------------------
+Dockerfile Instructions:
+------------------------
+
+- A simple text file with a set of instructions to build the image. 
+The following are the 18 instructions used in 'Uppercase' to customize the image to distinguish from the arguments.
+
+- Each instruction like below forms different layers
+
+
+ARG, 
+FROM, 
+WORKDIR, 
+ADD, 
+ENV, 
+COPY, 
+RUN, 
+CMD, 
+ENTRYPOINT, 
+USER, 
+SHELL, 
+HEALTHCHECK, 
+LABEL, 
+STOPSIGNAL, 
+EXPOSE, 
+MAINTAINER, 
+ONBUILD and 
+VOLUME
+-----------------------------------
+
+
+ARG:
+------
+- If there is any instruction that can be used before 'FROM', it is 'ARG' to initialize an argument
+- this instruction defines a variable that users can pass at build-time
+
+- 'ARG' will be available to all instructions in that stage.
+However, ARG is only available during build time and is discarded in the final image unless stored in ENV.
+
+
+
+Dockerfile:
+-----------
+ARG {username=nexus}
+FROM alpine
+USER $username
+COPY . .
+------------
+
+During build time, we have to pass arguments like
+
+	docker build -t heartocean/cat:tag --build-arg .
+	docker build -t heartocean/cat:tag --build-arg username=nexus .
+-----------------------------------
+
+
+FROM:
+-------
+- Any non-comment instruction in a valid docker file must start with 'FROM
+- FROM can be used multiple times for 'Multi stage docker files'
+- ARG is the  only instruction that can precede 'FROM'
+- 'FROM' is used to indicate the 'base image' upon which the other files or programs to be installed.
+
+Dockerfile:
+-----------
+FROM alpine
+------------
+
+
+The dockerfile uses 'alpine' as base image
+-----------------------------------
+
+
+WORKDIR:
+-------
+- Sets an initial directory for the project to execute
+- All the execution offsets to this path only
+
+Dockerfile:
+----------
+FROM alpine
+WORKDIR /app
+ADD https://sonatype.com/nexus-23.3.4.tar.gz 
+--------
+
+In the above file the package is directly downloaded to /app directory unleess and until you change the directory to another directory using another 'WORKDIR' instruction.
+-----------------------------------
+
+
+ADD:
+----
+- It is like COPY and besides it copies from remote
+- instruction copies files, dirs, or remote files(HTTP(S) Endpoints) from src and adds them to filesystem of the image at the path <dest>
+- It directly extracts the files from the archive to the destination directory supplied.
+
+ex:
+ADD https://sonatype.com/nexus-23.3.4.tar.gz /opt/
+
+-----------------------------------
+
+
+ENV:
+-----
+-----------------------------------
+
+
+COPY:
+-----
+- Instruction to 'copy' files from 'source' to 'destination'.
+- Source should be the part of the relative path to the 'build context'.
+- The destination can be absolute or relative path to the WORKDIR of the image.
+
+- we can also set WORKDIR
+
+WORKDIR /usr/local/tomcat
+COPY target/maven-app.war webapps/maven-app.war
+
+
+COPY . .
+--------
+- all source files in 'build context' to 'working dir' of the image is copied.
+- Executes while building the image
+
+COPY vs cp
+
+- COPY is a Dockerfile instruction while cp is docker instruction from system to container or container to system.
+
+-----------------------------------
+
+
+RUN:
+----
+-----------------------------------
+
+
+CMD:
+----
+- CMD instruction can only be one and even if there are many, only the last one is executed.
+- CMD instruction is in image executed to start the intended process that we want to execute based on the distribution. for ex in case of tomcat
+from tomcat
+....lines of instructions
+CMD ['catalina.sh', 'run']
+- The above 'tomcat image' may have either 'CMD' or 'ENTRYPOINT' instruction to start the intended process.
+for tomcat catalina.sh executed by CMD
+*** CMD instruction is executed while starting the container not while Building the image
+ex:
+CMD ['catalina.sh', 'run']
+*** we can override the CMD instruction commands during runtime  while passing arguments from
+docker run <imageName> ls -la
+
+-----------------------------------
+
+
+ENTRYPOINT:
+----------
+-----------------------------------
+
+
+USER:
+-----
+-----------------------------------
+
+
+SHELL:
+------
+-----------------------------------
+
+
+HEALTHCHECK:
+-------------
+-----------------------------------
+
+
+LABEL:
+-------
+-----------------------------------
+
+
+STOPSIGNAL:
+------------
+-----------------------------------
+
+
+EXPOSE:
+--------
+-----------------------------------
+
+
+MAINTAINER:
+------------
+- is deprecated. But can be used to to know the maintainer of the software or image.
+- instead of MAINTAINER instruction
+LABEL instruction is used to show the owner of the software.
+
+- wherever we inspect, the name can be known
+
+LABEL AUTHOR=HariRam
+LABEL email='hari.ram@gmail.com'
+
+- If the LABEL is given with the previous same key, then the previous key is replaced with the present value.
+- To view the LABEL, inspect the image, so we can see the label.
+-----------------------------------
+
+
+ONBUILD:
+-------
+-----------------------------------
+
+
+VOLUME:
+--------
+-----------------------------------
+
+
+
+
+
+RUN & CMD:
+----------
+- RUN will be executed while building the image while CMD is executed while starting or running the Container.
+
+RUN, CMD, ENTRYPOINT:
+---------------------
+- They are two types of forms for the above commands
+	- Shell form
+	- Executable form
+- we can run commands using RUN
+- RUN executes any commands or scripts in a new layer on top of previous layer and whatever layer created using 'RUN' can be used in next step.
+
+Shell form: 
+-----------
+whatever the commands run with shell form is run in a shell by default '/bin/bash' as a child process
+
+- In this way, the termination of processes won't be smooth if the containers are killed abruptly.
+
+- Chaining and piping the commands are possible in this form
+
+
+internally, it executes as a child process like below.
+
+/bin/bash -c <command>
+
+
+ex:
+RUN <command> <args>
+CMD <command> <args>
+ENTRYPOINT <command> <args>
+
+
+RUN mkdir -p /opt/test
+RUN useradd kittu -s /bin/bash
+
+CMD sh test.sh
+CMD java -jar app.jar
+CMD node app.js
+
+executable form:
+----------------
+
+- In this form it is executed as a main process
+
+- If the container is killed abruptly, then the process will be exited smoothly.
+
+- If we are killing the containers, signal goto main process and it terminates smoothly.
+
+- Especially for CMD and ENTRYPOINT, executable form is suggested because the process will be started.
+
+- piping and chaining cannot be used here.
+
+-**This form is used in CMD and ENTRYPOINT to start the process as a main process
+
+
+
+like below.
+
+'apt update -y'
+
+if it is in path.
+
+RUN ['apt', 'update', '-y']
+
+CMD ['apt', 'install', 'wget','curl', '-y']
+
+RUN ['useradd', 'kittu', '-s','/bin/bash']
+
+ENTRYPOINT ['sh','test.sh']
+
+ENTRYPOINT ['node', 'app.js']
+
+
+- RUN instruction is used while building the image and multiple RUN instructions can be used and all the RUN instructions executed one after the other.
+- To install or configure softwares, we can use RUN instruction.
+
+
+FROM alpine
+RUN apt install wget git -y
+RUN sed -i 's/k/l/' tom
+
+- RUN can execute any command on top of previous layer and can be executied while building the image
+
+BUILD CACHE: if we build the image for a build context, if any single layer is changed, the changed layer is only built again, but not the unchanged layers, so the building image becomes very fast as it uses cache.
+
+
+- Inorder to create a layer, it first creates a temp contianer and executes the command and then it will create the layer and removes the temp layer. the first time it copies to cache and the next time it makes the image so fast.
+
+- To avoid build cache, 
+
+docker build --no-cache -t image2 .
+----------------------------------
+
+
+- To execute something, it has to be in the path. we can set the environment variables using the 'ENV'
+
+ENV PATH=$PATH:/opt/test/test.sh
+RUN chmod +x /opt/test.sh
+CMD ['test.sh']
+
+
+- CMD instructions can be overidden while runtime like below if we execute a container 
+
+ex:
+docker run image ls -la
+docker run image3 cat h
+
+
+ENTRYPOINT:
+-------------
+
+
+- instruction is also while starting the container and can be used instead of CMD.
+
+- ENTRYPOINT commands are not overidden while runtime like CMD if arguments are passed but considered as arguments for ENTRYPOINT COMMANDS like
+
+docker run image1 date(whilebuild container)
+
+in Dockerfile
+----------
+ENTRYPOINT catalina.sh
+
+------------------------
+command is taken as :
+
+ENTRYPOINT catalina.sh date
+
+
+
+- ENTRYPOINT commands are passed to like parameters/argument to the 'docker start or docker run ' commands so it will be used as a CMD command for starting the container.
+
+
+- If the ENTRYPOINT argument if passed and there is CMD command executed, if the ENTRYPOINT is used in CMD command, then it will be used, otherwise it will be dumped and not used.
+
+- Only one ENTRY POINT will be executed.
+
+
+DIFF CMD and ENTRYPOINT:
+------------------------
+
+- CMD instructions can be overidden during the runtime but we cannot override the ENTRYPOINT instructions
+
+- commands passed during the runtime to CMD instructions will be overriden but if we pass instructions during the runtime to ENTRYPOINT, it takes the commands as parameters.if the parameters are used inside ENTRYPOINT instructions, it will use otherwise, it dumps.
+
+
+
+case-1:IF WE HAVE GIVEN ENTRYPOINT AND CMD :
+
+Dockerfile:
+------------
+
+CMD ['ls', '-lar']
+ENTRYPOINT ['test.sh']
+-------------
+
+CMD instructions are used as arguments for the ENTRYPOINT. If those CMD instructions are used for ENTRYPOINT instructions, it uses, otherwise dumps them.
+
+
+case-2:If we send arguments at runtime to CMD:
+
+
+Dockerfile:
+-----------
+
+CMD ['ls','-la']
+ENTRYPOINT ['test.sh']
+-----------
+
+during runtime, if I pass any arguments like 
+
+docker run image1 date
+
+then the argument 'whomami' is taken as CMD ['whomami'] and 
+ENTRYPOINT['test.sh']
+
+
+so the command will becomes
+
+'test.sh whoami'
+
+
+-****If the dockerfile is created with ENTRYPOINT executing any command that starts the process, even if you execute docker commands like
+
+'docker run --name k1 -d heartocean/docom:1 sleep infinity'
+
+will not be overrided due to the ENTRYPOINT in the dockerfile. But, the above command will override CMD instruction in place of ENTRYPOINT.
+---------------------------------------
+
+
+
 
