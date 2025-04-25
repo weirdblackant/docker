@@ -1,9 +1,3 @@
-<<<<<<< HEAD
 *.swp
 *.swo
 *.swm
-=======
-*.swo
-*.swm
-*.swp
->>>>>>> f5ee2da (added few lines in docker)

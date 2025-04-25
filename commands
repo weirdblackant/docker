@@ -1,5 +1,23 @@
-docker run -d --name mongo1 -e MONGO_INITDB_ROOT_USERNAME=prod -e MONGO_INITDB_ROOT_PASSWORD=prod@123 --volume vol1 --network network1 mongo:latest
+- Create a container with 'environment variables', 'preconfigured network'
 
-docker run -d --name tom1 -e MONGO_DB_HOSTNAME=mongo1 -e MONGO_DB_USERNAME=prod -e MONGO_DB_PASSWORD=prod@123 --network network1 -p 8080:8080 image1
+docker run -d --name mongo1 \
+-e MONGO_INITDB_ROOT_USERNAME=prod \
+-e MONGO_INITDB_ROOT_PASSWORD=prod@123 \
+--volume vol1 \
+--network network1 \
+mongo:latest
 
-docker run -d --name c1 --mount type=bind,src=/vol1,dst=/home alpine sh -c 'sleep 300'
+docker run -d --name tom1 \
+-e MONGO_DB_HOSTNAME=mongo1 \
+-e MONGO_DB_USERNAME=prod \
+-e MONGO_DB_PASSWORD=prod@123 \
+--network network1 \
+-p 8080:8080 \
+image1
+
+- Create a container with a 'volume type' as 'bind mount'
+
+docker run -d --name c1 \
+--mount type=bind,src=/vol1,dst=/home \
+alpine sh -c 'sleep 300'
+
