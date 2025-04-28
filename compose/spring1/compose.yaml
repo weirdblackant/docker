@@ -4,13 +4,13 @@ services:
     ports:
       - 8080:8080
     environment: 
-      - MONGO_DB_HOSTNAME=mongo1
+      - MONGO_DB_HOSTNAME=db1
       - MONGO_DB_USERNAME=prod
       - MONGO_DB_PASSWORD=prod@123
     networks:
       - app1network
 
-  mongo1:
+  db1:
     image: mongo:latest
     environment:
       - MONGO_INITDB_ROOT_USERNAME=prod

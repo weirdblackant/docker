@@ -202,6 +202,33 @@ NOTE:
 - You can remove unused volumes using docker volume prune.
 
 
+Volume plugins:
+---------------
+- Volume plugins enable docker to create volumes beyond the scope of docker nodes.
+- These plugins can create volumes in cloud like AWS(EBS,EFS,S3FS) and manage storage inside them
+- Docker uses below plugins for different use cases
+rexray/ebs(AWS-EBS)
+rexray/efs(AWS-EFS)
+rexray/s3fs(AWS-S3FS)
+
+
+- To install a plugin in docker node,
+
+for rexray/ebs
+	docker plugin install rexray/ebs EBS_ACCESSKEY=aws_access_key EBS_SECRETKEY=aws_secret_key
+
+for rexray/efs
+	docker plugin install rexray/ebs EFS_ACCESSKEY=aws_access_key EFS_SECRETKEY=aws_secret_key EFS_SECURITYGROUPS="sg-030" EFS_TAG=rexray
+
+
+
+- To check if plugin is installed properly and enabled
+	docker plugin ls
+
+- If not enabled, try it using
+	docker plugin enable rexray/ebs
+
+
 
 --------------------------
 bind mounts:
