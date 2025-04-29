@@ -21,3 +21,19 @@ docker run -d --name c1 \
 --mount type=bind,src=/vol1,dst=/home \
 alpine sh -c 'sleep 300'
 
+- To install and configure docker volume plugins for aws/ebs volume using 'rexray/ebs'
+
+docker plugin install rexray/ebs \
+EBS_ACCESSKEY=aws_accesskey \
+EBS_SECRETKEY=aws_secretkey
+
+- To install and configure docker volume plugins for aws/efs volume using 'rexray/efs'
+
+docker plugin install rexray/efs \
+EFS_ACCESSKEY=YOUR_ACCESS_KEY \
+EFS_SECRETKEY=YOUR_SECRET_KEY \
+EFS_SECURITYGROUPS="sg-123 sg-456" \
+EFS_REGION= us-east-1 \
+EFS_TAG=rexray \
+--grant-all-permissions
+
